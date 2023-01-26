@@ -53,6 +53,34 @@ def calculate_wfcgra(npr: int) -> np.ndarray:
         pool.map(calculate_wfcgra_kp, range(m.nr))
 
 
+def save_pos_files(banda: int, npr: int) -> None:
+    global save_pos_rp
+
+    pos_dir = os.path.join(m.workdir, f"wfcpos{banda}")
+    if not os.path.exists(pos_dir):
+        os.mkdir(pos_dir)
+
+    def save_pos_rp(rp):
+        np.save(os.path.join(pos_dir, f"wfcpos{banda}_rp{rp}.npy"), wfcpos[rp])
+
+    with Pool(min(10, npr)) as pool:
+        pool.map(save_pos_rp, range(m.nr))
+
+
+def save_grad_files(banda: int, npr: int) -> None:
+    global save_grad_rp
+
+    gra_dir = os.path.join(m.workdir, f"wfcgra{banda}")
+    if not os.path.exists(gra_dir):
+        os.mkdir(gra_dir)
+
+    def save_grad_rp(rp):
+        np.save(os.path.join(gra_dir, f"wfcgra{banda}_rp{rp}.npy"), wfcgra[rp])
+
+    with Pool(min(10, npr)) as pool:
+        pool.map(save_grad_rp, range(m.nr))
+
+
 def r_to_k(banda: int, npr: int) -> None:
     start = time()
     read_wfc_files(banda, npr)
@@ -69,7 +97,7 @@ def r_to_k(banda: int, npr: int) -> None:
     start = time()
     #IDEA: Try saving this files into a folder in different chunks
     np.save(os.path.join(m.workdir, f"wfcpos{banda}.npy"), wfcpos)
-    np.save(os.path.join(m.workdir, f"wfcgra{banda}.npy"), wfcgra)
+    save_grad_files(banda, npr)
     logger.debug(f"\twfcpos{banda} and wfcgra{banda} saved in {time() - start:.2f} seconds\n")
 
 
